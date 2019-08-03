@@ -16,13 +16,15 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 
+import java.util.concurrent.TimeUnit;
+
 @Autonomous(name = "Accelerometer Test")
 public class Accelerometer extends OpMode {
     DcMotor fLeft, fRight, bLeft, bRight;
 
     // The IMU sensor object
     BNO055IMU imu;
-
+    String state="";
     // State used for updating telemetry
     Acceleration gravity;
 
@@ -33,16 +35,16 @@ public class Accelerometer extends OpMode {
     double goalTime;
 
     //Acceleration variables
-    //double lastX, lastY;
-    double xMotion, yMotion, xTotal, yTotal;
+    double angular, lastAngular;
+    double xTotal, yTotal;
     int count;
     double xGoal, yGoal;
 
-    //boolean hit = false;
+    int loops = 0;
 
     static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
-    static final double     DRIVE_GEAR_REDUCTION    = 2.0 ;     // This is < 1.0 if geared UP
-    static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
+    static final double     DRIVE_GEAR_REDUCTION    = 1.0 ;     // This is < 1.0 if geared UP
+    static final double     WHEEL_DIAMETER_INCHES   = 3.937 ;     // For figuring circumference
     static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
                                                         (WHEEL_DIAMETER_INCHES * 3.1415);
 
@@ -84,38 +86,48 @@ public class Accelerometer extends OpMode {
 
         // Start the logging of measured acceleration
         imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
+
+        lastAngular = 0;
     }
 
     public void loop() {
-        gravity = imu.getGravity();
-        xMotion = imu.getAcceleration().xAccel;
-        yMotion = imu.getAcceleration().yAccel;
+        gravity = imu.getAcceleration();
+        angular = imu.getAngularVelocity().zRotationRate;
 
-        //Telemetry of acceleration and velocity
+        //Telemetry of acceleration
         telemetry.addData("X Acceleration", gravity.xAccel);
         telemetry.addData("Y Acceleration", gravity.yAccel);
-        telemetry.addData("Z Acceleration", gravity.zAccel);
-        telemetry.addData("X Acceleration", xMotion);
-        telemetry.addData("Y Acceleration", yMotion);
-        telemetry.addData("Z Acceleration", imu.getAcceleration().zAccel);
+        telemetry.addData("Z Acceleration (Auto-calibrated for gravity)", gravity.zAccel);
+        telemetry.addData("Angular Velocity", angular);
+        telemetry.addData("State: ", state);
 
-        if (goalTime <= 0) {
+        if (System.currentTimeMillis() % 10 == 0) {
+            if (angular > lastAngular + 1 || angular < lastAngular - 1) {
+                state="HIT";
+            } else {
+                state = "MISS";
+            }
+            lastAngular = angular;
+        }
+
+        /*if (goalTime <= 0) {
             stop();
-            if (xMotion >= 0.1 || xMotion <= -0.1 || yMotion >= 0.1 || yMotion <= -0.1) {
+            if (gravity.xAccel >= 0.1 || gravity.xAccel <= -0.1 || gravity.yAccel >= 0.1 || gravity.yAccel <= -0.1) {
                 mTime.reset();
-                xTotal += xMotion;
-                yTotal += yMotion;
+                xTotal += gravity.xAccel;
+                yTotal += gravity.yAccel;
                 count++;
             } else {
-                goalTime = mTime.time();
-                xGoal = -(xTotal / count) * goalTime;
-                yGoal = -(yTotal / count) * goalTime;
+                goalTime = mTime.time(TimeUnit.SECONDS);
+                xGoal = 39.3700787 * (-(xTotal / count) * goalTime);
+                yGoal = 39.3700787 * (-(yTotal / count) * goalTime);
             }
         } else {
             encoderDrive(xGoal, yGoal);
+            goalTime = 0;
         }
 
-        if (!fLeft.isBusy() && !fRight.isBusy() && !bLeft.isBusy() && !bRight.isBusy()) {
+        if (goalTime == 0 && !fLeft.isBusy() && !fRight.isBusy() && !bLeft.isBusy() && !bRight.isBusy()) {
             fLeft.setPower(0);
             fRight.setPower(0);
             bLeft.setPower(0);
@@ -125,20 +137,15 @@ public class Accelerometer extends OpMode {
             fRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             bLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             bRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        }
+        }*/
     }
 
     public void encoderDrive(double xDist, double yDist) {
-        int fLTarget;
-        int fRTarget;
-        int bLTarget;
-        int bRTarget;
-
         // Determine new target position, and pass to motor controller
-        fLTarget = fLeft.getCurrentPosition() + (int)((yDist + xDist) * COUNTS_PER_INCH);
-        fRTarget = fRight.getCurrentPosition() + (int)((yDist - xDist) * COUNTS_PER_INCH);
-        bLTarget = bLeft.getCurrentPosition() + (int)((yDist - xDist) * COUNTS_PER_INCH);
-        bRTarget = bRight.getCurrentPosition() + (int)((yDist + xDist) * COUNTS_PER_INCH);
+        int fLTarget = fLeft.getCurrentPosition() + (int)((yDist + xDist) * COUNTS_PER_INCH);
+        int fRTarget = fRight.getCurrentPosition() + (int)((yDist - xDist) * COUNTS_PER_INCH);
+        int bLTarget = bLeft.getCurrentPosition() + (int)((yDist - xDist) * COUNTS_PER_INCH);
+        int bRTarget = bRight.getCurrentPosition() + (int)((yDist + xDist) * COUNTS_PER_INCH);
         fLeft.setTargetPosition(fLTarget);
         fRight.setTargetPosition(fRTarget);
         bLeft.setTargetPosition(bLTarget);
