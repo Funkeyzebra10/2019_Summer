@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 
 import org.firstinspires.ftc.robotcontroller.external.samples.SensorBNO055IMU;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
@@ -59,6 +60,11 @@ public class MechCrashAvoidance extends OpMode {
     }
 
     public void loop() {
+        telemetry.addData("accel: ", imu.getAcceleration());
+        telemetry.addData("velocity: ", imu.getAngularVelocity());
+        telemetry.addData("dist l: ", leftD.getDistance(DistanceUnit.CM));
+        telemetry.addData("dist c: ", centerD.getDistance(DistanceUnit.CM));
+
 
     }
 
