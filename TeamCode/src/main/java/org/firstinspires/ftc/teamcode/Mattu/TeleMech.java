@@ -15,7 +15,7 @@ public class TeleMech extends OpMode {
 
     double leftX, leftY, rightX, rightY;
 
-    boolean leftBumper, rightBumper;
+    double leftTrigger, rightTrigger;
 
     double distance = 18.0832517;
 
@@ -58,8 +58,8 @@ public class TeleMech extends OpMode {
         leftY = gamepad1.left_stick_y;
         rightX = gamepad1.right_stick_x;
         rightY = gamepad1.right_stick_y;
-        leftBumper = gamepad1.left_bumper;
-        rightBumper = gamepad1.right_bumper;
+        leftTrigger = gamepad1.left_trigger;
+        rightTrigger = gamepad1.right_trigger;
 
         telemetry.addData("Left Distance", distanceL.getDistance(DistanceUnit.CM));
         telemetry.addData("Right Distance", distanceR.getDistance(DistanceUnit.CM));
@@ -68,26 +68,26 @@ public class TeleMech extends OpMode {
         telemetry.addData("Left Y: ", leftY);
         telemetry.addData("Right X: ", rightX);
         telemetry.addData("Right Y", rightY);
-        telemetry.addData("Front Left Power: ", fL());
-        telemetry.addData("Front Right Power: ", fR());
-        telemetry.addData("Back Left Power: ", bL());
-        telemetry.addData("Back Right Power: ", bR());
+        telemetry.addData("Front Left Power: ", fL() * 100/128);
+        telemetry.addData("Front Right Power: ", fR() * 100/128);
+        telemetry.addData("Back Left Power: ", bL() * 100/128);
+        telemetry.addData("Back Right Power: ", bR() * 100/128);
 
-        if (leftBumper) {
+        if (leftTrigger > 0.1) {
             if (distanceL.getDistance(DistanceUnit.CM) >= distance) {
-                fLeft.setPower(-0.8);
-                fRight.setPower(0.8);
-                bLeft.setPower(0.8);
-                bRight.setPower(-0.8);
+                fLeft.setPower(-(leftTrigger * 100) / 128);
+                fRight.setPower((leftTrigger * 100) / 128);
+                bLeft.setPower((leftTrigger * 100) / 128);
+                bRight.setPower(-(leftTrigger * 100) / 128);
             }
         }
 
-        if (rightBumper) {
+        if (rightTrigger > 0.1) {
             if (distanceR.getDistance(DistanceUnit.CM) >= distance) {
-                fLeft.setPower(0.8);
-                fRight.setPower(-0.8);
-                bLeft.setPower(-0.8);
-                bRight.setPower(0.8);
+                fLeft.setPower((rightTrigger * 100) / 128);
+                fRight.setPower(-(rightTrigger * 100) / 128);
+                bLeft.setPower(-(rightTrigger * 100) / 128);
+                bRight.setPower((rightTrigger * 100) / 128);
             }
         }
 
@@ -97,17 +97,17 @@ public class TeleMech extends OpMode {
     public void setPower() {
         if (leftY > 0 && rightY > 0) {
             if (distanceC.getDistance(DistanceUnit.CM) >= distance) {
-                fLeft.setPower(fL());
-                fRight.setPower(fR());
-                bLeft.setPower(bL());
-                bRight.setPower(bR());
+                fLeft.setPower(fL() * 100/128);
+                fRight.setPower(fR() * 100/128);
+                bLeft.setPower(bL() * 100/128);
+                bRight.setPower(bR() * 100/128);
             }
         }
         else {
-            fLeft.setPower(fL());
-            fRight.setPower(fR());
-            bLeft.setPower(bL());
-            bRight.setPower(bR());
+            fLeft.setPower(fL() * 100/128);
+            fRight.setPower(fR() * 100/128);
+            bLeft.setPower(bL() * 100/128);
+            bRight.setPower(bR() * 100/128);
         }
     }
 }
