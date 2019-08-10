@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
+import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
@@ -20,27 +21,22 @@ public class MecaRoomba extends OpMode {
     DistanceSensor distanceL, distanceR, distanceC;
 
     double left, right, mid;
+    double distance;
 
     // The IMU sensor object
     BNO055IMU imu;
-
-    // State used for updating telemetry
     Acceleration gravity;
 
-    //double[] vel = new double[2];   //Velocity when hit
-
-    //Set up time
+    //Time variables
     ElapsedTime mTime = new ElapsedTime();
     double goalTime;
 
-    //Acceleration variables
-    //double lastX, lastY;
+    //Variables for auto-correction
     double xTotal, yTotal;
     int count;
     double xGoal, yGoal;
 
-    //boolean hit = false;
-
+    //Encoder variables
     static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
     static final double     DRIVE_GEAR_REDUCTION    = 1.0 ;     // This is < 1.0 if geared UP
     static final double     WHEEL_DIAMETER_INCHES   = 3.937 ;     // For figuring circumference
@@ -90,6 +86,8 @@ public class MecaRoomba extends OpMode {
         distanceL = hardwareMap.get(DistanceSensor.class, "distanceL");
         distanceR = hardwareMap.get(DistanceSensor.class, "distanceR");
         distanceC = hardwareMap.get(DistanceSensor.class, "distanceC");
+
+        distance = 24;
     }
 
     public void loop() {
@@ -101,12 +99,19 @@ public class MecaRoomba extends OpMode {
         telemetry.addData("Center Distance(cm)", mid);
         telemetry.addData("Right Distance(cm)", right);
 
-        if (left < 24 || right < 24 || mid < 24) {
+        if (left < distance) {
             fLeft.setPower(0.25);
             fRight.setPower(-0.25);
             bLeft.setPower(0.25);
             bRight.setPower(-0.25);
-        } else {
+        }
+        else if (right < distance || mid < distance) {
+            fLeft.setPower(-0.25);
+            fRight.setPower(0.25);
+            bLeft.setPower(-0.25);
+            bRight.setPower(0.25);
+        }
+        else {
             fLeft.setPower(0.25);
             fRight.setPower(0.25);
             bLeft.setPower(0.25);

@@ -9,10 +9,10 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 @Autonomous(name = "AutoAvoidance")
 public class AutoAvoidance extends OpMode {
     DcMotor bLeft, bRight, fLeft, fRight;
-    private DistanceSensor distanceL, distanceCL, distanceCR, distanceR;
-    double left, leftF, rightF, right;
+    private DistanceSensor distanceL, distanceC, distanceR;
+    double left, front, right;
     String[] position= new String[3];
-    int distance = 12 ;
+    int distance = 12;
 
     public void init () {
         fLeft = hardwareMap.dcMotor.get("fLeft");
@@ -21,15 +21,13 @@ public class AutoAvoidance extends OpMode {
         bRight = hardwareMap.dcMotor.get("bRight");
 
         distanceL = hardwareMap.get(DistanceSensor.class, "distanceL");
-        distanceCL = hardwareMap.get(DistanceSensor.class, "distanceCL");
-        distanceCR = hardwareMap.get(DistanceSensor.class, "distanceCR");
+        distanceC = hardwareMap.get(DistanceSensor.class, "distanceC");
         distanceR = hardwareMap.get(DistanceSensor.class, "distanceR");
 
         fLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         fRight.setDirection(DcMotorSimple.Direction.REVERSE);
         bLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         bRight.setDirection(DcMotorSimple.Direction.REVERSE);
-
     }
 
     public void loop() {

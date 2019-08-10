@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
@@ -20,28 +21,28 @@ import java.util.concurrent.TimeUnit;
 
 @Autonomous(name = "Accelerometer Test")
 public class Accelerometer extends OpMode {
+    //Sensor and motor variables
     DcMotor fLeft, fRight, bLeft, bRight;
-
-    // The IMU sensor object
     BNO055IMU imu;
-    String state="";
+
     // State used for updating telemetry
-    Acceleration gravity;
+    String state="";
 
-    //double[] vel = new double[2];   //Velocity when hit
-
-    //Set up time
+    //Time variables
     ElapsedTime mTime = new ElapsedTime();
     double goalTime;
 
     //Acceleration variables
-    double angular, lastAngular;
+    Acceleration gravity;
+    AngularVelocity angular;
+    double lastAngularZ;
+
+    //Variables for auto-correction
     double xTotal, yTotal;
     int count;
     double xGoal, yGoal;
 
-    int loops = 0;
-
+    //Encoder variables
     static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
     static final double     DRIVE_GEAR_REDUCTION    = 1.0 ;     // This is < 1.0 if geared UP
     static final double     WHEEL_DIAMETER_INCHES   = 3.937 ;     // For figuring circumference
@@ -87,27 +88,27 @@ public class Accelerometer extends OpMode {
         // Start the logging of measured acceleration
         imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
 
-        lastAngular = 0;
+        lastAngularZ = 0;
     }
 
     public void loop() {
         gravity = imu.getAcceleration();
-        angular = imu.getAngularVelocity().zRotationRate;
+        angular = imu.getAngularVelocity();
 
         //Telemetry of acceleration
         telemetry.addData("X Acceleration", gravity.xAccel);
         telemetry.addData("Y Acceleration", gravity.yAccel);
         telemetry.addData("Z Acceleration (Auto-calibrated for gravity)", gravity.zAccel);
-        telemetry.addData("Angular Velocity", angular);
+        telemetry.addData("Angular Velocity", angular.zRotationRate);
         telemetry.addData("State: ", state);
 
         if (System.currentTimeMillis() % 10 == 0) {
-            if (angular > lastAngular + 1 || angular < lastAngular - 1) {
+            if (angular.zRotationRate > lastAngularZ + 1 || angular.zRotationRate < lastAngularZ - 1) {
                 state="HIT";
             } else {
                 state = "MISS";
             }
-            lastAngular = angular;
+            lastAngularZ = angular.zRotationRate;
         }
 
         /*if (goalTime <= 0) {
