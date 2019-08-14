@@ -28,26 +28,18 @@ public class Accelerometer extends OpMode {
     // State used for updating telemetry
     String state="";
 
-    //Time variables
-    ElapsedTime mTime = new ElapsedTime();
-    double goalTime;
-
-    //Acceleration variables
-    Acceleration gravity;
-    AngularVelocity angular;
-    double lastAngularZ;
-
-    //Variables for auto-correction
-    double xTotal, yTotal;
-    int count;
-    double xGoal, yGoal;
+    //IMU variables
+    Acceleration gravity; //Acceleration
+    AngularVelocity angular; //Angular Velocity
+    double lastAngularZ; //Angular Velocity
+    double speedX, speedY, dTime; //Speed
 
     //Encoder variables
     static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
     static final double     DRIVE_GEAR_REDUCTION    = 1.0 ;     // This is < 1.0 if geared UP
     static final double     WHEEL_DIAMETER_INCHES   = 3.937 ;     // For figuring circumference
     static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
-                                                        (WHEEL_DIAMETER_INCHES * 3.1415);
+            (WHEEL_DIAMETER_INCHES * 3.1415);
 
     public void init() {
         fLeft = hardwareMap.dcMotor.get("fLeft");
@@ -89,16 +81,25 @@ public class Accelerometer extends OpMode {
         imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
 
         lastAngularZ = 0;
+        dTime = 0;
+        speedX = 0;
+        speedY = 0;
     }
 
     public void loop() {
         gravity = imu.getAcceleration();
         angular = imu.getAngularVelocity();
 
-        //Telemetry of acceleration
-        telemetry.addData("X Acceleration", gravity.xAccel);
-        telemetry.addData("Y Acceleration", gravity.yAccel);
-        telemetry.addData("Z Acceleration (Auto-calibrated for gravity)", gravity.zAccel);
+        speedX += gravity.xAccel * (System.currentTimeMillis() - dTime) / 1000;
+        speedY += gravity.yAccel * (System.currentTimeMillis() - dTime) / 1000;
+        dTime = System.currentTimeMillis();
+
+        //Telemetry of speed, acceleration, and angular velocity
+        telemetry.addData("X Speed (m/s): ", speedX);
+        telemetry.addData("Y Speed (m/s): ", speedY);
+        telemetry.addData("X Acceleration (m/s/s): ", gravity.xAccel);
+        telemetry.addData("Y Acceleration (m/s/s): ", gravity.yAccel);
+        telemetry.addData("Z Acceleration (m/s/s): ", imu.getGravity().zAccel);
         telemetry.addData("Angular Velocity", angular.zRotationRate);
         telemetry.addData("State: ", state);
 
@@ -110,59 +111,6 @@ public class Accelerometer extends OpMode {
             }
             lastAngularZ = angular.zRotationRate;
         }
-
-        /*if (goalTime <= 0) {
-            stop();
-            if (gravity.xAccel >= 0.1 || gravity.xAccel <= -0.1 || gravity.yAccel >= 0.1 || gravity.yAccel <= -0.1) {
-                mTime.reset();
-                xTotal += gravity.xAccel;
-                yTotal += gravity.yAccel;
-                count++;
-            } else {
-                goalTime = mTime.time(TimeUnit.SECONDS);
-                xGoal = 39.3700787 * (-(xTotal / count) * goalTime);
-                yGoal = 39.3700787 * (-(yTotal / count) * goalTime);
-            }
-        } else {
-            encoderDrive(xGoal, yGoal);
-            goalTime = 0;
-        }
-
-        if (goalTime == 0 && !fLeft.isBusy() && !fRight.isBusy() && !bLeft.isBusy() && !bRight.isBusy()) {
-            fLeft.setPower(0);
-            fRight.setPower(0);
-            bLeft.setPower(0);
-            bRight.setPower(0);
-
-            fLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            fRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            bLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            bRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        }*/
-    }
-
-    public void encoderDrive(double xDist, double yDist) {
-        // Determine new target position, and pass to motor controller
-        int fLTarget = fLeft.getCurrentPosition() + (int)((yDist + xDist) * COUNTS_PER_INCH);
-        int fRTarget = fRight.getCurrentPosition() + (int)((yDist - xDist) * COUNTS_PER_INCH);
-        int bLTarget = bLeft.getCurrentPosition() + (int)((yDist - xDist) * COUNTS_PER_INCH);
-        int bRTarget = bRight.getCurrentPosition() + (int)((yDist + xDist) * COUNTS_PER_INCH);
-        fLeft.setTargetPosition(fLTarget);
-        fRight.setTargetPosition(fRTarget);
-        bLeft.setTargetPosition(bLTarget);
-        bRight.setTargetPosition(bRTarget);
-
-        // Turn On RUN_TO_POSITION
-        fLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        fRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        bLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        bRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        // reset the timeout time and start motion.
-        fLeft.setPower(Math.abs(100/128));
-        fRight.setPower(Math.abs(100/128));
-        bLeft.setPower(Math.abs(100/128));
-        bRight.setPower(Math.abs(100/128));
     }
 
     public void stop() {

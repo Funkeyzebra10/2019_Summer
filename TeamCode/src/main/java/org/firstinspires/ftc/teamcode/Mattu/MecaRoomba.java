@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
@@ -17,31 +16,32 @@ import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 
 @Autonomous(name = "MecaRoomba")
 public class MecaRoomba extends OpMode {
+    //Motors and sensors
     DcMotor fLeft, fRight, bLeft, bRight;
     DistanceSensor distanceL, distanceR, distanceC;
+    BNO055IMU imu;
 
+    //left = left distance sensor return value
+    //right = right distance sensor return value
+    //mid = center distance sensor return value
+    //distance = valu eto determine if sensors detect obstacle
     double left, right, mid;
     double distance;
 
-    // The IMU sensor object
-    BNO055IMU imu;
-    Acceleration gravity;
+    // State used for updating telemetry
+    //sensorState = array to hold boolean values of whether or not each sensor detects an object {left, mid, right}
+    //movingState = string to hold direction of motion intended for the switch statement in loop
+    boolean[] sensorState = {false, false, false};
+    String movingState = "Forward";
 
-    //Time variables
-    ElapsedTime mTime = new ElapsedTime();
-    double goalTime;
+    //IMU variables
+    //gravity holds acceleration values in x, y, and z
+    Acceleration gravity; //Acceleration
+    AngularVelocity angular; //Angular Velocity
+    double lastAngularZ;
+    double speedX, speedY, dTime; //Speed
 
-    //Variables for auto-correction
-    double xTotal, yTotal;
-    int count;
-    double xGoal, yGoal;
-
-    //Encoder variables
-    static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
-    static final double     DRIVE_GEAR_REDUCTION    = 1.0 ;     // This is < 1.0 if geared UP
-    static final double     WHEEL_DIAMETER_INCHES   = 3.937 ;     // For figuring circumference
-    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
-            (WHEEL_DIAMETER_INCHES * 3.1415);
+    int loops;
 
     public void init() {
         fLeft = hardwareMap.dcMotor.get("fLeft");
@@ -87,36 +87,138 @@ public class MecaRoomba extends OpMode {
         distanceR = hardwareMap.get(DistanceSensor.class, "distanceR");
         distanceC = hardwareMap.get(DistanceSensor.class, "distanceC");
 
+        //Setup variables
         distance = 24;
+        lastAngularZ = 0;
+        dTime = 0;
+        speedX = 0;
+        speedY = 0;
+        loops = 0;
     }
 
     public void loop() {
+        //Acceleration and angular velocity variables, respectably
+        gravity = imu.getAcceleration();
+        angular = imu.getAngularVelocity();
+
+        //Set variables for distance values
         left = distanceL.getDistance(DistanceUnit.CM);
         mid = distanceC.getDistance(DistanceUnit.CM);
         right = distanceR.getDistance(DistanceUnit.CM);
 
-        telemetry.addData("Left Distance(cm)", left);
-        telemetry.addData("Center Distance(cm)", mid);
-        telemetry.addData("Right Distance(cm)", right);
+        //Setup sensorState with boolean values
+        sensorState[0] = left <= distance;
+        sensorState[1] = mid <= distance;
+        sensorState[2] = right <= distance;
 
-        if (left < distance) {
-            fLeft.setPower(0.25);
-            fRight.setPower(-0.25);
-            bLeft.setPower(0.25);
-            bRight.setPower(-0.25);
+        //Get speed values from acceleration values
+        speedX += gravity.xAccel * (System.currentTimeMillis() - dTime) / 1000;
+        speedY += gravity.yAccel * (System.currentTimeMillis() - dTime) / 1000;
+        dTime = System.currentTimeMillis();
+
+        //Telemetry of states
+        telemetry.addData("Moving State: ", movingState);
+        telemetry.addData("Sensor State: ", sensorState);
+
+        //Telemetry of distances
+        telemetry.addData("Left Distance (cm): ", left);
+        telemetry.addData("Center Distance (cm): ", mid);
+        telemetry.addData("Right Distance (cm): ", right);
+
+        //Telemetry of speed, acceleration, and angular velocity
+        telemetry.addData("X Speed (m/s): ", speedX);
+        telemetry.addData("Y Speed (m/s): ", speedY);
+        telemetry.addData("X Acceleration (m/s/s): ", gravity.xAccel);
+        telemetry.addData("Y Acceleration (m/s/s): ", gravity.yAccel);
+        telemetry.addData("Z Acceleration (m/s/s): ", imu.getGravity().zAccel);
+        telemetry.addData("Angular Velocity", angular.zRotationRate);
+
+        //Logic for moving
+        if (sensorState[2]) {
+            movingState = "Back Left";
         }
-        else if (right < distance || mid < distance) {
-            fLeft.setPower(-0.25);
-            fRight.setPower(0.25);
-            bLeft.setPower(-0.25);
-            bRight.setPower(0.25);
+        if (sensorState[0] || sensorState[1]) {
+            movingState = "Back Right";
         }
         else {
-            fLeft.setPower(0.25);
-            fRight.setPower(0.25);
-            bLeft.setPower(0.25);
-            bRight.setPower(0.25);
+            movingState = "Forward";
         }
+
+        switch (movingState) {
+            //Move forward
+            case "Forward":
+                fLeft.setPower(0.3);
+                fRight.setPower(0.3);
+                bLeft.setPower(0.3);
+                bRight.setPower(0.3);
+                break;
+            //Turn right and move back
+            case "Back Right":
+                if (loops % 3 == 0) {
+                    //Collision detection
+                    if (angular.zRotationRate < lastAngularZ - 1) {
+                        movingState = "Up Right";
+                        break;
+                    } else {
+                        fLeft.setPower(0.2);
+                        fRight.setPower(-0.4);
+                        bLeft.setPower(0.2);
+                        bRight.setPower(-0.4);
+                    }
+                    lastAngularZ = angular.zRotationRate;
+                }
+                break;
+            //Turn left and move back
+            case "Back Left":
+                if (loops % 3 == 0) {
+                    //Collision detection
+                    if (angular.zRotationRate > lastAngularZ + 1) {
+                        movingState = "Up Left";
+                        break;
+                    } else {
+                        fLeft.setPower(-0.4);
+                        fRight.setPower(0.2);
+                        bLeft.setPower(-0.4);
+                        bRight.setPower(0.2);
+                    }
+                    lastAngularZ = angular.zRotationRate;
+                }
+                break;
+            //Turn right and move up
+            case "Up Right":
+                if (loops % 3 == 0) {
+                    //Collision detection
+                    if (angular.zRotationRate < lastAngularZ - 1) {
+                        movingState = "Back Right";
+                        break;
+                    } else {
+                        fLeft.setPower(0.4);
+                        fRight.setPower(-0.2);
+                        bLeft.setPower(0.4);
+                        bRight.setPower(-0.2);
+                    }
+                    lastAngularZ = angular.zRotationRate;
+                }
+                break;
+            //Turn left and move up
+            case "Up Left":
+                if (loops % 3 == 0) {
+                    //Collision detection
+                    if (angular.zRotationRate < lastAngularZ - 1) {
+                        movingState = "Back Left";
+                        break;
+                    } else {
+                        fLeft.setPower(-0.2);
+                        fRight.setPower(0.4);
+                        bLeft.setPower(-0.2);
+                        bRight.setPower(0.4);
+                    }
+                    lastAngularZ = angular.zRotationRate;
+                }
+                break;
+        }
+
+        loops++;
     }
 
     public void stop() {
