@@ -36,14 +36,18 @@ public class MecaRoomba extends OpMode {
 
     //IMU variables
     //gravity holds acceleration values in x, y, and z
-    Acceleration gravity; //Acceleration
-    AngularVelocity angular; //Angular Velocity
+    //angular holds angular velocity values in x, y and z //lastAngularz holds previous z axis angular velocity for collision detection
+    //speedx and speedy hold speed values in the x and y axis, gotten from accelerometer and dTime (delta time)
+    Acceleration gravity;
+    AngularVelocity angular;
     double lastAngularZ;
-    double speedX, speedY, dTime; //Speed
+    double speedX, speedY, dTime;
 
+    //Amount of loops the code has run through
     int loops;
 
     public void init() {
+        //Hardware mapping of the four motors
         fLeft = hardwareMap.dcMotor.get("fLeft");
         fRight = hardwareMap.dcMotor.get("fRight");
         bLeft = hardwareMap.dcMotor.get("bLeft");

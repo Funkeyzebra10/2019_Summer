@@ -21,19 +21,19 @@ public class TeleMech extends OpMode {
 
     //Calculate the power needed to move in a specific direction.
     double fL() {
-        return leftY + leftX;
-    }
-
-    double fR() {
-        return rightY - rightX;
-    }
-
-    double bL() {
         return leftY - leftX;
     }
 
-    double bR() {
+    double fR() {
         return rightY + rightX;
+    }
+
+    double bL() {
+        return leftY + leftX;
+    }
+
+    double bR() {
+        return rightY - rightX;
     }
 
     public void init() {
@@ -75,19 +75,19 @@ public class TeleMech extends OpMode {
 
         if (leftTrigger > 0.1) {
             if (distanceL.getDistance(DistanceUnit.CM) >= distance) {
-                fLeft.setPower(-(leftTrigger * 100) / 128);
-                fRight.setPower((leftTrigger * 100) / 128);
-                bLeft.setPower((leftTrigger * 100) / 128);
-                bRight.setPower(-(leftTrigger * 100) / 128);
+                fLeft.setPower((leftTrigger * 100) / 128);
+                fRight.setPower(-(leftTrigger * 100) / 128);
+                bLeft.setPower(-(leftTrigger * 100) / 128);
+                bRight.setPower((leftTrigger * 100) / 128);
             }
         }
 
         if (rightTrigger > 0.1) {
             if (distanceR.getDistance(DistanceUnit.CM) >= distance) {
-                fLeft.setPower((rightTrigger * 100) / 128);
-                fRight.setPower(-(rightTrigger * 100) / 128);
-                bLeft.setPower(-(rightTrigger * 100) / 128);
-                bRight.setPower((rightTrigger * 100) / 128);
+                fLeft.setPower(-(rightTrigger * 100) / 128);
+                fRight.setPower((rightTrigger * 100) / 128);
+                bLeft.setPower((rightTrigger * 100) / 128);
+                bRight.setPower(-(rightTrigger * 100) / 128);
             }
         }
 
