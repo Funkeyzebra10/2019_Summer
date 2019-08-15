@@ -11,7 +11,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 @TeleOp(name="SensorBot")
 public class SensorBotTeleOp extends OpMode {
     DcMotor fLeft, fRight, bLeft, bRight;
-    DistanceSensor distanceL, distanceCL, distanceCR, distanceR;
+    //DistanceSensor distanceL, distanceCL, distanceCR, distanceR;
     float leftDrive,rightDrive,leftStrafe,rightStrafe;
     public void init(){
         fLeft = hardwareMap.dcMotor.get("fLeft");
@@ -19,10 +19,10 @@ public class SensorBotTeleOp extends OpMode {
         bLeft = hardwareMap.dcMotor.get("bLeft");
         bRight = hardwareMap.dcMotor.get("bRight");
 
-        distanceL = hardwareMap.get(DistanceSensor.class, "distanceL");
+        /*distanceL = hardwareMap.get(DistanceSensor.class, "distanceL");
         distanceCL = hardwareMap.get(DistanceSensor.class, "distanceCL");
         distanceCR = hardwareMap.get(DistanceSensor.class, "distanceCR");
-        distanceR = hardwareMap.get(DistanceSensor.class, "distanceR");
+        distanceR = hardwareMap.get(DistanceSensor.class, "distanceR");*/
 
         fLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         fRight.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -30,10 +30,11 @@ public class SensorBotTeleOp extends OpMode {
         bRight.setDirection(DcMotorSimple.Direction.FORWARD);
     }
     public void loop(){
+        /*
         telemetry.addData("Left Distance(cm)",distanceL.getDistance(DistanceUnit.CM));
         telemetry.addData("Center Left Distance(cm)",distanceCL.getDistance(DistanceUnit.CM));
         telemetry.addData("Center Right Distance(cm)",distanceCR.getDistance(DistanceUnit.CM));
-        telemetry.addData("Right Distance(cm)",distanceR.getDistance(DistanceUnit.CM));
+        telemetry.addData("Right Distance(cm)",distanceR.getDistance(DistanceUnit.CM));*/
 
         leftDrive=gamepad1.left_stick_y;
         rightDrive=gamepad1.right_stick_y;
