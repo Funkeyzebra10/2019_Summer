@@ -24,7 +24,7 @@ public class MecaRoomba extends OpMode {
     //left = left distance sensor return value
     //right = right distance sensor return value
     //mid = center distance sensor return value
-    //distance = valu eto determine if sensors detect obstacle
+    //distance = value to determine if sensors detect obstacle
     double left, right, mid;
     double distance;
 
@@ -32,7 +32,11 @@ public class MecaRoomba extends OpMode {
     //sensorState = array to hold boolean values of whether or not each sensor detects an object {left, mid, right}
     //movingState = string to hold direction of motion intended for the switch statement in loop
     boolean[] sensorState = {false, false, false};
-    String movingState = "Forward";
+
+    enum MovingState {
+        M_NULL, M_BACK_LEFT, M_BACK_RIGHT, M_FORWARD, M_UP_RIGHT, M_UP_LEFT;
+    }
+    MovingState movingState = MovingState.M_FORWARD;
 
     //IMU variables
     //gravity holds acceleration values in x, y, and z
@@ -45,6 +49,7 @@ public class MecaRoomba extends OpMode {
 
     //Amount of loops the code has run through
     int loops;
+
 
     public void init() {
         //Hardware mapping of the four motors
@@ -139,29 +144,29 @@ public class MecaRoomba extends OpMode {
 
         //Logic for moving
         if (sensorState[2]) {
-            movingState = "Back Left";
+            movingState = MovingState.M_BACK_LEFT;
         }
         if (sensorState[0] || sensorState[1]) {
-            movingState = "Back Right";
+            movingState = MovingState.M_BACK_RIGHT;
         }
         else {
-            movingState = "Forward";
+            movingState = MovingState.M_FORWARD;
         }
 
         switch (movingState) {
             //Move forward
-            case "Forward":
+            case M_FORWARD:
                 fLeft.setPower(0.3);
                 fRight.setPower(0.3);
                 bLeft.setPower(0.3);
                 bRight.setPower(0.3);
                 break;
             //Turn right and move back
-            case "Back Right":
+            case M_BACK_RIGHT:
                 if (loops % 3 == 0) {
                     //Collision detection
                     if (angular.zRotationRate < lastAngularZ - 1) {
-                        movingState = "Up Right";
+                        movingState = MovingState.M_UP_RIGHT;
                         break;
                     } else {
                         fLeft.setPower(0.2);
@@ -173,11 +178,11 @@ public class MecaRoomba extends OpMode {
                 }
                 break;
             //Turn left and move back
-            case "Back Left":
+            case M_BACK_LEFT:
                 if (loops % 3 == 0) {
                     //Collision detection
                     if (angular.zRotationRate > lastAngularZ + 1) {
-                        movingState = "Up Left";
+                        movingState = MovingState.M_UP_LEFT;
                         break;
                     } else {
                         fLeft.setPower(-0.4);
@@ -189,11 +194,11 @@ public class MecaRoomba extends OpMode {
                 }
                 break;
             //Turn right and move up
-            case "Up Right":
+            case M_UP_RIGHT:
                 if (loops % 3 == 0) {
                     //Collision detection
                     if (angular.zRotationRate < lastAngularZ - 1) {
-                        movingState = "Back Right";
+                        movingState = MovingState.M_BACK_RIGHT;
                         break;
                     } else {
                         fLeft.setPower(0.4);
@@ -205,11 +210,11 @@ public class MecaRoomba extends OpMode {
                 }
                 break;
             //Turn left and move up
-            case "Up Left":
+            case M_UP_LEFT:
                 if (loops % 3 == 0) {
                     //Collision detection
                     if (angular.zRotationRate < lastAngularZ - 1) {
-                        movingState = "Back Left";
+                        movingState = MovingState.M_BACK_LEFT;
                         break;
                     } else {
                         fLeft.setPower(-0.2);
@@ -220,6 +225,8 @@ public class MecaRoomba extends OpMode {
                     lastAngularZ = angular.zRotationRate;
                 }
                 break;
+            case M_NULL:
+                stop();
         }
 
         loops++;
