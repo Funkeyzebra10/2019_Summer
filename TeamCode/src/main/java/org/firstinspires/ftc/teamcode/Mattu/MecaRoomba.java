@@ -30,26 +30,28 @@ public class MecaRoomba extends OpMode {
 
     // State used for updating telemetry
     //sensorState = array to hold boolean values of whether or not each sensor detects an object {left, mid, right}
-    //movingState = string to hold direction of motion intended for the switch statement in loop
+    //movingState = object to hold direction of motion intended for the switch statement in loop
     boolean[] sensorState = {false, false, false};
 
+    //MovingState is an enum for the states of movingState
     enum MovingState {
         M_NULL, M_BACK_LEFT, M_BACK_RIGHT, M_FORWARD, M_UP_RIGHT, M_UP_LEFT;
     }
     MovingState movingState = MovingState.M_FORWARD;
 
+    int hit;
+
     //IMU variables
     //gravity holds acceleration values in x, y, and z
     //angular holds angular velocity values in x, y and z //lastAngularz holds previous z axis angular velocity for collision detection
-    //speedx and speedy hold speed values in the x and y axis, gotten from accelerometer and dTime (delta time)
+    //speedX and speedY hold speed values in the x and y axis, gotten from accelerometer and dTime (delta time)
     Acceleration gravity;
     AngularVelocity angular;
     double lastAngularZ;
     double speedX, speedY, dTime;
 
-    //Amount of loops the code has run through
+    //Amount of loops the code has run through in loop
     int loops;
-
 
     public void init() {
         //Hardware mapping of the four motors
@@ -91,18 +93,19 @@ public class MecaRoomba extends OpMode {
         // Start the logging of measured acceleration
         imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
 
-        //Set up the distance sensors
+        //Hardware map the distance sensors
         distanceL = hardwareMap.get(DistanceSensor.class, "distanceL");
         distanceR = hardwareMap.get(DistanceSensor.class, "distanceR");
         distanceC = hardwareMap.get(DistanceSensor.class, "distanceC");
 
-        //Setup variables
+        //Setup variables so errors aren't thrown
         distance = 24;
         lastAngularZ = 0;
         dTime = 0;
         speedX = 0;
         speedY = 0;
         loops = 0;
+        hit = 0;
     }
 
     public void loop() {
@@ -128,6 +131,7 @@ public class MecaRoomba extends OpMode {
         //Telemetry of states
         telemetry.addData("Moving State: ", movingState);
         telemetry.addData("Sensor State: ", sensorState);
+        telemetry.addData("Amount of turning hits: ", hit);
 
         //Telemetry of distances
         telemetry.addData("Left Distance (cm): ", left);
@@ -166,8 +170,9 @@ public class MecaRoomba extends OpMode {
                 if (loops % 3 == 0) {
                     //Collision detection
                     if (angular.zRotationRate < lastAngularZ - 1) {
-                        movingState = MovingState.M_UP_RIGHT;
-                        break;
+                        hit++;
+                        /*movingState = MovingState.M_UP_RIGHT;
+                        break;*/
                     } else {
                         fLeft.setPower(0.2);
                         fRight.setPower(-0.4);
@@ -182,8 +187,9 @@ public class MecaRoomba extends OpMode {
                 if (loops % 3 == 0) {
                     //Collision detection
                     if (angular.zRotationRate > lastAngularZ + 1) {
-                        movingState = MovingState.M_UP_LEFT;
-                        break;
+                        hit++;
+                        /*movingState = MovingState.M_UP_LEFT;
+                        break;*/
                     } else {
                         fLeft.setPower(-0.4);
                         fRight.setPower(0.2);
@@ -198,8 +204,9 @@ public class MecaRoomba extends OpMode {
                 if (loops % 3 == 0) {
                     //Collision detection
                     if (angular.zRotationRate < lastAngularZ - 1) {
-                        movingState = MovingState.M_BACK_RIGHT;
-                        break;
+                        hit++;
+                        /*movingState = MovingState.M_BACK_RIGHT;
+                        break;*/
                     } else {
                         fLeft.setPower(0.4);
                         fRight.setPower(-0.2);
@@ -214,8 +221,9 @@ public class MecaRoomba extends OpMode {
                 if (loops % 3 == 0) {
                     //Collision detection
                     if (angular.zRotationRate < lastAngularZ - 1) {
-                        movingState = MovingState.M_BACK_LEFT;
-                        break;
+                        hit++;
+                        /*movingState = MovingState.M_BACK_LEFT;
+                        break;*/
                     } else {
                         fLeft.setPower(-0.2);
                         fRight.setPower(0.4);
@@ -225,6 +233,7 @@ public class MecaRoomba extends OpMode {
                     lastAngularZ = angular.zRotationRate;
                 }
                 break;
+            //If nothing else, stop
             case M_NULL:
                 stop();
         }

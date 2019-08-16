@@ -17,7 +17,7 @@ public class TeleMech extends OpMode {
 
     double leftTrigger, rightTrigger;
 
-    double distance = 18.0832517;
+    double distance = 24;
 
     //Calculate the power needed to move in a specific direction.
     double fL() {
@@ -36,6 +36,25 @@ public class TeleMech extends OpMode {
         return rightY - rightX;
     }
 
+    double sF, sc;
+
+    double scale () {
+        double sA =0;
+        if (fL() > sF) {
+            sA = fL() / sF;
+        }
+        if (fR() > fL() && fR() > sF) {
+            sA = fR() / sF;
+        }
+        if (bL() > fL() && bL() > fR() && bL() > sF) {
+            sA = bL() / sF;
+        }
+        if (bR() > fL() && bR() > fR() && bR() > bL() && bR() > sF) {
+            sA = bR() / sF;
+        }
+        return sA;
+    }
+
     public void init() {
         fLeft = hardwareMap.dcMotor.get("fLeft");
         fRight = hardwareMap.dcMotor.get("fRight");
@@ -50,6 +69,8 @@ public class TeleMech extends OpMode {
         distanceL = hardwareMap.get(DistanceSensor.class, "distanceL");
         distanceR = hardwareMap.get(DistanceSensor.class, "distanceR");
         distanceC = hardwareMap.get(DistanceSensor.class, "distanceC");
+
+        sF = 1;
     }
 
     public void loop() {
@@ -61,6 +82,8 @@ public class TeleMech extends OpMode {
         leftTrigger = gamepad1.left_trigger;
         rightTrigger = gamepad1.right_trigger;
 
+        sc = scale();
+
         telemetry.addData("Left Distance", distanceL.getDistance(DistanceUnit.CM));
         telemetry.addData("Right Distance", distanceR.getDistance(DistanceUnit.CM));
         telemetry.addData("Center Distance", distanceC.getDistance(DistanceUnit.CM));
@@ -68,26 +91,26 @@ public class TeleMech extends OpMode {
         telemetry.addData("Left Y: ", leftY);
         telemetry.addData("Right X: ", rightX);
         telemetry.addData("Right Y", rightY);
-        telemetry.addData("Front Left Power: ", fL() * 100/128);
-        telemetry.addData("Front Right Power: ", fR() * 100/128);
-        telemetry.addData("Back Left Power: ", bL() * 100/128);
-        telemetry.addData("Back Right Power: ", bR() * 100/128);
+        telemetry.addData("Front Left Power: ", fL() / sc);
+        telemetry.addData("Front Right Power: ", fR() / sc);
+        telemetry.addData("Back Left Power: ", bL() / sc);
+        telemetry.addData("Back Right Power: ", bR() / sc);
 
         if (leftTrigger > 0.1) {
             if (distanceL.getDistance(DistanceUnit.CM) >= distance) {
-                fLeft.setPower((leftTrigger * 100) / 128);
-                fRight.setPower(-(leftTrigger * 100) / 128);
-                bLeft.setPower(-(leftTrigger * 100) / 128);
-                bRight.setPower((leftTrigger * 100) / 128);
+                fLeft.setPower(0.9);
+                fRight.setPower(-0.9);
+                bLeft.setPower(-0.9);
+                bRight.setPower(0.9);
             }
         }
 
         if (rightTrigger > 0.1) {
             if (distanceR.getDistance(DistanceUnit.CM) >= distance) {
-                fLeft.setPower(-(rightTrigger * 100) / 128);
-                fRight.setPower((rightTrigger * 100) / 128);
-                bLeft.setPower((rightTrigger * 100) / 128);
-                bRight.setPower(-(rightTrigger * 100) / 128);
+                fLeft.setPower(-0.9);
+                fRight.setPower(0.9);
+                bLeft.setPower(0.9);
+                bRight.setPower(-0.9);
             }
         }
 
@@ -97,17 +120,17 @@ public class TeleMech extends OpMode {
     public void setPower() {
         if (leftY > 0 && rightY > 0) {
             if (distanceC.getDistance(DistanceUnit.CM) >= distance) {
-                fLeft.setPower(fL() * 100/128);
-                fRight.setPower(fR() * 100/128);
-                bLeft.setPower(bL() * 100/128);
-                bRight.setPower(bR() * 100/128);
+                fLeft.setPower(fL() / sc);
+                fRight.setPower(fR() / sc);
+                bLeft.setPower(bL() / sc);
+                bRight.setPower(bR() / sc);
             }
         }
         else {
-            fLeft.setPower(fL() * 100/128);
-            fRight.setPower(fR() * 100/128);
-            bLeft.setPower(bL() * 100/128);
-            bRight.setPower(bR() * 100/128);
+            fLeft.setPower(fL() / sc);
+            fRight.setPower(fR() / sc);
+            bLeft.setPower(bL() / sc);
+            bRight.setPower(bR() / sc);
         }
     }
 }
