@@ -37,7 +37,7 @@ public class MecaRoomba extends OpMode {
     enum MovingState {
         M_NULL, M_BACK_LEFT, M_BACK_RIGHT, M_FORWARD, M_UP_RIGHT, M_UP_LEFT;
     }
-    MovingState movingState = MovingState.M_FORWARD;
+    MovingState movingState = MovingState.M_NULL;
 
     int hit;
 
