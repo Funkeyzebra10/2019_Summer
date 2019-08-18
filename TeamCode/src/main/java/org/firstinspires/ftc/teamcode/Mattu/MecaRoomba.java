@@ -15,6 +15,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
+
 @Autonomous(name = "MecaRoomba")
 public class MecaRoomba extends OpMode {
     //Motors and sensors
@@ -36,9 +39,9 @@ public class MecaRoomba extends OpMode {
 
     //MovingState is an enum for the states of movingState
     enum MovingState {
-        M_NULL, M_BACK_LEFT, M_BACK_RIGHT, M_FORWARD, M_UP_RIGHT, M_UP_LEFT;
+        M_START, M_NULL, M_BACK_LEFT, M_BACK_RIGHT, M_FORWARD, M_UP_RIGHT, M_UP_LEFT;
     }
-    MovingState movingState = MovingState.M_NULL;
+    MovingState movingState = MovingState.M_FORWARD;
 
     int hit;
 
@@ -61,10 +64,10 @@ public class MecaRoomba extends OpMode {
         bLeft = hardwareMap.dcMotor.get("bLeft");
         bRight = hardwareMap.dcMotor.get("bRight");
 
-        fLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        fRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        bRight.setDirection(DcMotor.Direction.REVERSE);
-        bLeft.setDirection(DcMotor.Direction.FORWARD);
+        fLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        fRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        bRight.setDirection(DcMotor.Direction.FORWARD);
+        bLeft.setDirection(DcMotor.Direction.REVERSE);
 
         fLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         fRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -100,13 +103,19 @@ public class MecaRoomba extends OpMode {
         distanceC = hardwareMap.get(DistanceSensor.class, "distanceC");
 
         //Setup variables so errors aren't thrown
-        distance = 24;
+        distance = 29;
         lastAngularZ = 0;
         dTime = 0;
         speedX = 0;
         speedY = 0;
         loops = 0;
         hit = 0;
+
+        fLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        fRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        bLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        bRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
     }
 
     public void loop() {
@@ -131,7 +140,7 @@ public class MecaRoomba extends OpMode {
 
         //Telemetry of states
         telemetry.addData("Moving State: ", movingState);
-        telemetry.addData("Sensor State: ", sensorState);
+        telemetry.addData("Sensor State: ", Arrays.toString(sensorState));
         telemetry.addData("Amount of turning hits: ", hit);
 
         //Telemetry of distances
@@ -148,23 +157,26 @@ public class MecaRoomba extends OpMode {
         telemetry.addData("Angular Velocity", angular.zRotationRate);
 
         //Logic for moving
-        if (sensorState[2]) {
-            movingState = MovingState.M_BACK_LEFT;
-        }
-        if (sensorState[0] || sensorState[1]) {
+        if (sensorState[1] || (sensorState[0] && sensorState[1])) {
             movingState = MovingState.M_BACK_RIGHT;
+        }
+        else if (sensorState[2] || (sensorState[2] && sensorState[1])) {
+            movingState = MovingState.M_BACK_LEFT;
         }
         else {
             movingState = MovingState.M_FORWARD;
         }
 
         switch (movingState) {
+            case M_START:
+                movingState = MovingState.M_FORWARD;
+                break;
             //Move forward
             case M_FORWARD:
-                fLeft.setPower(0.3);
-                fRight.setPower(0.3);
-                bLeft.setPower(0.3);
-                bRight.setPower(0.3);
+                /*fLeft.setPower(0.2);
+                fRight.setPower(0.2);
+                bLeft.setPower(0.2);
+                bRight.setPower(0.2);*/
                 break;
             //Turn right and move back
             case M_BACK_RIGHT:
@@ -175,10 +187,10 @@ public class MecaRoomba extends OpMode {
                         /*movingState = MovingState.M_UP_RIGHT;
                         break;*/
                     } else {
-                        fLeft.setPower(0.2);
+                        /*fLeft.setPower(0.2);
                         fRight.setPower(-0.4);
                         bLeft.setPower(0.2);
-                        bRight.setPower(-0.4);
+                        bRight.setPower(-0.4);*/
                     }
                     lastAngularZ = angular.zRotationRate;
                 }
@@ -192,10 +204,10 @@ public class MecaRoomba extends OpMode {
                         /*movingState = MovingState.M_UP_LEFT;
                         break;*/
                     } else {
-                        fLeft.setPower(-0.4);
+                        /*fLeft.setPower(-0.4);
                         fRight.setPower(0.2);
                         bLeft.setPower(-0.4);
-                        bRight.setPower(0.2);
+                        bRight.setPower(0.2);*/
                     }
                     lastAngularZ = angular.zRotationRate;
                 }
@@ -209,10 +221,10 @@ public class MecaRoomba extends OpMode {
                         /*movingState = MovingState.M_BACK_RIGHT;
                         break;*/
                     } else {
-                        fLeft.setPower(0.4);
+                        /*fLeft.setPower(0.4);
                         fRight.setPower(-0.2);
                         bLeft.setPower(0.4);
-                        bRight.setPower(-0.2);
+                        bRight.setPower(-0.2);*/
                     }
                     lastAngularZ = angular.zRotationRate;
                 }
@@ -226,10 +238,10 @@ public class MecaRoomba extends OpMode {
                         /*movingState = MovingState.M_BACK_LEFT;
                         break;*/
                     } else {
-                        fLeft.setPower(-0.2);
+                        /*fLeft.setPower(-0.2);
                         fRight.setPower(0.4);
                         bLeft.setPower(-0.2);
-                        bRight.setPower(0.4);
+                        bRight.setPower(0.4);*/
                     }
                     lastAngularZ = angular.zRotationRate;
                 }
