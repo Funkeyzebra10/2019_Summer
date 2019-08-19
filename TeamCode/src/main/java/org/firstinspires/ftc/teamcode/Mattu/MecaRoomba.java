@@ -13,8 +13,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
-
-import java.lang.reflect.Array;
 import java.util.Arrays;
 
 @Autonomous(name = "MecaRoomba")
@@ -102,7 +100,7 @@ public class MecaRoomba extends OpMode {
         distanceC = hardwareMap.get(DistanceSensor.class, "distanceC");
 
         //Setup variables so errors aren't thrown
-        distance = 29;
+        distance = 31;
         lastAngularZ = 0;
         dTime = 0;
         speedX = 0;
@@ -156,13 +154,21 @@ public class MecaRoomba extends OpMode {
         telemetry.addData("Angular Velocity", angular.zRotationRate);
 
         //Logic for moving
-        if (sensorState[1] || (sensorState[0] && sensorState[1])) {
+        if (sensorState[1]) {       //Check middle sensor first as it is most important
+            if (sensorState[2] && !sensorState[0]) {   //If only right and middle sensors fire
+                movingState = MovingState.M_BACK_LEFT;
+            }
+            else {                  //Whether left sensor is fired or not, code will be the same, as long as right sensor is not fired
+                movingState = MovingState.M_BACK_RIGHT;
+            }
+        }
+        else if (sensorState[0]) {  //Check left sensor before right because right turn should be default turn direction
             movingState = MovingState.M_BACK_RIGHT;
         }
-        else if (sensorState[2] || (sensorState[2] && sensorState[1])) {
+        else if (sensorState[2]) {  //Finally check right sensor when nothing else as left turning should be a last case scenario
             movingState = MovingState.M_BACK_LEFT;
         }
-        else {
+        else {                      //When no sensors fire, drive straight
             movingState = MovingState.M_FORWARD;
         }
 
@@ -172,10 +178,10 @@ public class MecaRoomba extends OpMode {
                 break;
             //Move forward
             case M_FORWARD:
-                /*fLeft.setPower(0.2);
+                fLeft.setPower(0.2);
                 fRight.setPower(0.2);
                 bLeft.setPower(0.2);
-                bRight.setPower(0.2);*/
+                bRight.setPower(0.2);
                 break;
             //Turn right and move back
             case M_BACK_RIGHT:
@@ -186,10 +192,10 @@ public class MecaRoomba extends OpMode {
                         /*movingState = MovingState.M_UP_RIGHT;
                         break;*/
                     } else {
-                        /*fLeft.setPower(0.2);
+                        fLeft.setPower(0.2);
                         fRight.setPower(-0.4);
                         bLeft.setPower(0.2);
-                        bRight.setPower(-0.4);*/
+                        bRight.setPower(-0.4);
                     }
                     lastAngularZ = angular.zRotationRate;
                 }
@@ -203,10 +209,10 @@ public class MecaRoomba extends OpMode {
                         /*movingState = MovingState.M_UP_LEFT;
                         break;*/
                     } else {
-                        /*fLeft.setPower(-0.4);
+                        fLeft.setPower(-0.4);
                         fRight.setPower(0.2);
                         bLeft.setPower(-0.4);
-                        bRight.setPower(0.2);*/
+                        bRight.setPower(0.2);
                     }
                     lastAngularZ = angular.zRotationRate;
                 }
@@ -220,10 +226,10 @@ public class MecaRoomba extends OpMode {
                         /*movingState = MovingState.M_BACK_RIGHT;
                         break;*/
                     } else {
-                        /*fLeft.setPower(0.4);
+                        fLeft.setPower(0.4);
                         fRight.setPower(-0.2);
                         bLeft.setPower(0.4);
-                        bRight.setPower(-0.2);*/
+                        bRight.setPower(-0.2);
                     }
                     lastAngularZ = angular.zRotationRate;
                 }
@@ -237,10 +243,10 @@ public class MecaRoomba extends OpMode {
                         /*movingState = MovingState.M_BACK_LEFT;
                         break;*/
                     } else {
-                        /*fLeft.setPower(-0.2);
+                        fLeft.setPower(-0.2);
                         fRight.setPower(0.4);
                         bLeft.setPower(-0.2);
-                        bRight.setPower(0.4);*/
+                        bRight.setPower(0.4);
                     }
                     lastAngularZ = angular.zRotationRate;
                 }
