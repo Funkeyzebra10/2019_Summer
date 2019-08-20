@@ -84,7 +84,7 @@ public class GyroscopeTest extends OpMode {
         bLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         double speed = 0;
-        double min = 0.35;
+        double min = 0.1;
         double max = 0.8;
         double iTime=System.currentTimeMillis();
 
