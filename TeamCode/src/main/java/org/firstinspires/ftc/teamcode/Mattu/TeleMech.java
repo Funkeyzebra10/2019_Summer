@@ -102,7 +102,7 @@ public class TeleMech extends OpMode {
         gravity = imu.getAcceleration();
         angular = imu.getAngularVelocity();
 
-        //Get inputs from left and right sticks.
+        //Get inputs from left and right sticks and left and right sticks.
         /*leftX = gamepad1.left_stick_x;
         leftY = gamepad1.left_stick_y;
         rightX = gamepad1.right_stick_x;
@@ -110,6 +110,7 @@ public class TeleMech extends OpMode {
         leftTrigger = gamepad1.left_trigger;
         rightTrigger = gamepad1.right_trigger;*/
 
+        //Logic for accelerometer data
         if (gravity.xAccel >= 1) {
             accelState = "Right";
         }
@@ -131,7 +132,6 @@ public class TeleMech extends OpMode {
         telemetry.addData("Y Acceleration (m/s/s): ", gravity.yAccel);
         telemetry.addData("Angular Velocity", angular.zRotationRate);
 
-
         /*if (leftTrigger > 0.1) {
             if (distanceL.getDistance(DistanceUnit.CM) >= distance) {
                 fLeft.setPower(0.5);
@@ -152,6 +152,7 @@ public class TeleMech extends OpMode {
 
         setPower();*/
 
+        //Tests for accelerometer
         if ((accelState.equals("Right") || accelState.equals("Left")) && !stopped) {
             stopped = true;
             startTime = System.currentTimeMillis();
@@ -167,6 +168,7 @@ public class TeleMech extends OpMode {
             bRight.setPower(0.3);
         }
 
+        //A timer for when hit
         if(stopped) {
             if(sysTime - startTime >= 5000) {
                 stopped = false;
