@@ -21,6 +21,12 @@ public class GyroscopeTest extends OpMode {
     DcMotor fLeft, fRight, bLeft, bRight;
     BNO055IMU imu;
     Orientation angles;
+    double threshold = 0.25;
+    double initAngle;
+    double currAngle;
+    double time;
+    boolean state = false;
+    boolean isStraight = true;
     public void init(){
         //Hardware mapping of the four motors
         fLeft = hardwareMap.dcMotor.get("fLeft");
@@ -67,7 +73,21 @@ public class GyroscopeTest extends OpMode {
         bRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
     public void loop(){
-        Rotation(180);
+        time=(double)System.currentTimeMillis();
+        telemetry.addData("Am I Straight? ",isStraight);
+
+        if (time%1000==0 && state) {
+            initAngle = angles.firstAngle;
+            state = false;
+        }else if (time%1000==0 && !state){
+            if (Math.abs(initAngle-angles.firstAngle)<=threshold) {
+                isStraight = true;
+
+            }else {
+                isStraight = false;
+            }
+            state = true;
+        }
     }
     public void stop(){
 
